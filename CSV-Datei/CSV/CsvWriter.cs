@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace CSV
@@ -11,7 +12,19 @@ namespace CSV
         /// <summary>
         /// Pfad der Datei
         /// </summary>
-        public string Pfad { get; private set; }
+        private string pfad;
+
+        public string Pfad
+        {
+            get { return pfad; }
+            set
+            {
+                if (File.Exists(value))
+                    pfad = value;
+                else
+                    throw new FileNotFoundException();
+            }
+        }
 
         /// <summary>
         /// Überschreiben oder nicht
@@ -25,14 +38,7 @@ namespace CSV
         /// <exception cref="FileNotFoundException"></exception>
         public CsvWriter(string pfad)
         {
-            if (File.Exists(pfad))
-            {
-                Pfad = pfad;
-            }
-            else
-            {
-                throw new FileNotFoundException();
-            }
+            Pfad = pfad;
         }
 
         /// <summary>
@@ -41,53 +47,47 @@ namespace CSV
         /// <param name="pfad">Pfad der Datei</param>
         /// <param name="ueberschreiben">true = Inhalt wird überschrieben. Standard = false</param>
         public CsvWriter(string pfad, bool ueberschreiben)
-            :this(pfad)
+            : this(pfad)
         {
             Ueberschreiben = ueberschreiben;
-        }
-
-        /// <summary>
-        /// Schreibt alle Felder in die Csv-Datei.
-        /// </summary>
-        /// <param name="felder">Alle Felder in einem Array</param>
-        /// <exception cref="DirectoryNotFoundException"></exception>
-        /// <exception cref="UnauthorizedAccessException"></exception>
-        /// <exception cref="PathTooLongException"></exception>
-        /// <exception cref="System.Security.SecurityException"></exception>
-        public void AddLine(string[] felder)
-        {
-            string daten = "";
-
-            foreach (var feld in felder)
-            {
-                if (feld == felder[0])
-                    daten = $"{feld}";
-                else
-                    daten += $";{feld}";
-            }
-
-            var streamWriter = new StreamWriter(Pfad, !Ueberschreiben);
-
-            streamWriter.Write(daten + "\n");
-
-            streamWriter.Close();
         }
 
         /// <summary>
         /// Schreibt alle Linien im Array in die Csv-Datei.
         /// </summary>
         /// <param name="linien">Liste aller Linien</param>
-        /// <param name="feld_trennzeichen">Gibt an wie die Felder in jeder Linie(Jedes Array Feld) getrennt sind</param>
+        /// <param name="feld_trennzeichen">Gibt an wie die Felder in jeder Linie(jedes Feld in der Liste) getrennt sind</param>
         /// /// <exception cref="DirectoryNotFoundException"></exception>
         /// <exception cref="UnauthorizedAccessException"></exception>
         /// <exception cref="PathTooLongException"></exception>
         /// <exception cref="System.Security.SecurityException"></exception>
-        public void AddLines(string[] linien, char feld_trennzeichen)
+        public void AddLines(List<string> linien, char feld_trennzeichen)
         {
+            string datenalle = "";
+
             foreach (var linie in linien)
             {
-                AddLine(linie.Split(feld_trennzeichen));
+                string daten = "";
+
+                string[] felder = linie.Split(feld_trennzeichen);
+
+                foreach (var feld in felder)
+                {
+                    if (feld == felder[0])
+                        daten = $"{feld}";
+                    else
+                        daten += $";{feld}";
+                }
+
+                datenalle += daten + "\n";
+
             }
+
+            var streamWriter = new StreamWriter(Pfad, !Ueberschreiben);
+
+            streamWriter.Write(datenalle);
+
+            streamWriter.Close();
         }
     }
 }
